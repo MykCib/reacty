@@ -85,7 +85,17 @@ export default function Leaderboard() {
             <YStack>
               {stats.top10.map((entry, idx) => (
                 <YStack key={entry.key}>
-                  <YStack py="$3" px="$2" ai="flex-start" jc="space-between">
+                  <Stack
+                    py="$3"
+                    px="$2"
+                    ai="flex-start"
+                    jc="space-between"
+                    flexDirection="column"
+                    $gtSm={{
+                      flexDirection: "row",
+                      alignItems: "center"
+                    }}
+                  >
                     <XStack ai="center" space="$3">
                       <Stack
                         w={28}
@@ -106,7 +116,8 @@ export default function Leaderboard() {
                     <Text color="$gray11" fontSize="$3">
                       {entry.date.toLocaleString()}
                     </Text>
-                  </YStack>
+                  </Stack>
+
                   {idx < stats.top10.length - 1 ? <Separator /> : null}
                 </YStack>
               ))}
