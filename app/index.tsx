@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { Button, Stack, Text, XStack, YStack } from "tamagui";
 
 type GameState = "idle" | "waiting" | "red" | "result" | "tooEarly";
@@ -12,6 +13,36 @@ export default function ReactionGame() {
 
   const startTimeRef = useRef<number>(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const loadBestTime = useCallback(async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const reactionKeys = keys.filter((k) => k.startsWith("reaction:"));
+      if (reactionKeys.length === 0) return;
+
+      const entries = await AsyncStorage.multiGet(reactionKeys);
+      let best = Infinity;
+
+      for (const [, value] of entries) {
+        if (value) {
+          const time = Number(value);
+          if (Number.isFinite(time) && time > 0 && time < best) {
+            best = time;
+          }
+        }
+      }
+
+      if (best !== Infinity) {
+        setBestTime(best);
+      }
+    } catch {}
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadBestTime();
+    }, [loadBestTime])
+  );
 
   const startGame = (): void => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -37,11 +68,11 @@ export default function ReactionGame() {
     if (gameState === "red") {
       const rt = Date.now() - startTimeRef.current;
       setReactionTime(rt);
-      setBestTime((prev) => (prev == null || rt < prev ? rt : prev));
       setGameState("result");
       try {
         const key = `reaction:${new Date().toISOString()}`;
         await AsyncStorage.setItem(key, String(rt));
+        setBestTime((prev) => (prev == null || rt < prev ? rt : prev));
       } catch {}
     }
   };
