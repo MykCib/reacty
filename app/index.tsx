@@ -1,139 +1,220 @@
-import { useState, useRef } from "react";
-import { Button, Text, YStack, Stack } from "tamagui";
+import { useEffect, useRef, useState } from "react";
 import { Pressable } from "react-native";
+import { Button, Stack, Text, XStack, YStack } from "tamagui";
 
 type GameState = "idle" | "waiting" | "red" | "result" | "tooEarly";
 
 export default function ReactionGame() {
   const [gameState, setGameState] = useState<GameState>("idle");
   const [reactionTime, setReactionTime] = useState<number>(0);
+  const [bestTime, setBestTime] = useState<number | null>(null);
+
   const startTimeRef = useRef<number>(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const startGame = () => {
-    setGameState("waiting");
-    setReactionTime(0);
+  const startGame = (): void => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    const randomDelay = Math.random() * 5000 + 1000; // 1-6 seconds
+    setReactionTime(0);
+    setGameState("waiting");
+
+    const delayMs = Math.floor(700 + Math.random() * 4300);
 
     timeoutRef.current = setTimeout(() => {
       startTimeRef.current = Date.now();
       setGameState("red");
-    }, randomDelay);
+    }, delayMs);
   };
 
-  const handlePress = () => {
+  const handleGamePress = (): void => {
     if (gameState === "waiting") {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setGameState("tooEarly");
       return;
     }
 
     if (gameState === "red") {
-      const endTime = Date.now();
-      const reaction = endTime - startTimeRef.current;
-      setReactionTime(reaction);
+      const rt = Date.now() - startTimeRef.current;
+      setReactionTime(rt);
+      setBestTime((prev) => (prev == null || rt < prev ? rt : prev));
       setGameState("result");
     }
   };
 
-  const resetGame = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    setGameState("idle");
+  const reset = (): void => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setReactionTime(0);
+    setGameState("idle");
   };
 
-  const getBackgroundColor = () => {
-    switch (gameState) {
-      case "waiting":
-        return "$gray8";
-      case "red":
-        return "$red8";
-      default:
-        return "$background";
-    }
-  };
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
-  const getReactionMessage = () => {
-    if (reactionTime < 200) return "Lightning fast! ⚡";
-    if (reactionTime < 300) return "Excellent! 🎯";
-    if (reactionTime < 400) return "Good! 👍";
-    if (reactionTime < 500) return "Not bad! 👌";
-    return "Try again! 🐌";
-  };
+  const bgColor = (() => {
+    if (gameState === "waiting") return "$gray7";
+    if (gameState === "red") return "$red10";
+    return "$background";
+  })();
+
+  const feedback = (() => {
+    if (reactionTime < 200) return "Lightning fast ⚡";
+    if (reactionTime < 300) return "Excellent 🎯";
+    if (reactionTime < 400) return "Good 👍";
+    if (reactionTime < 500) return "Not bad 👌";
+    return "Keep practicing 🐢";
+  })();
 
   if (gameState === "waiting" || gameState === "red") {
     return (
-      <Pressable onPress={handlePress} style={{ flex: 1 }}>
-        <Stack
-          flex={1}
-          backgroundColor={getBackgroundColor()}
-          justifyContent="center"
-          alignItems="center"
+      <Pressable onPress={handleGamePress} style={{ flex: 1 }}>
+        <YStack
+          f={1}
+          jc="center"
+          ai="center"
+          bg={bgColor}
+          animation="quick"
+          enterStyle={{ opacity: 0 }}
         >
-          {gameState === "waiting" && (
-            <Text color="$color" fontSize="$6" textAlign="center">
-              Wait for red...
-            </Text>
-          )}
-          {gameState === "red" && (
-            <Text color="white" fontSize="$8" fontWeight="bold" textAlign="center">
-              TAP NOW!
-            </Text>
-          )}
-        </Stack>
+          <Stack
+            p="$4"
+            br="$8"
+            bg="rgba(0,0,0,0.15)"
+            animation="quick"
+            enterStyle={{ opacity: 0, scale: 0.98, y: 5 }}
+          >
+            {gameState === "waiting" ? (
+              <YStack ai="center" space="$2">
+                <Text color="$color" fontSize="$6">
+                  Get ready
+                </Text>
+                <Text color="$gray12" fontSize="$3">
+                  Wait for red, then tap anywhere
+                </Text>
+              </YStack>
+            ) : (
+              <YStack ai="center" space="$2">
+                <Text color="white" fontSize="$9" fontWeight="800">
+                  TAP NOW
+                </Text>
+                <Text color="$gray2" fontSize="$4">
+                  Tap anywhere on the screen
+                </Text>
+              </YStack>
+            )}
+          </Stack>
+        </YStack>
       </Pressable>
     );
   }
 
   return (
-    <YStack flex={1} justifyContent="center" alignItems="center" padding="$4" space="$4">
-      <Text fontSize="$8" fontWeight="bold" textAlign="center">
-        Reaction Game
+    <YStack f={1} bg="$background" p="$6" space="$6" jc="center" ai="center">
+      <YStack ai="center" space="$2">
+        <Text fontSize="$8" fontWeight="800" letterSpacing={0.5}>
+          Reaction Game
+        </Text>
+        <Text color="$gray11" fontSize="$4">
+          Tap when the screen turns red
+        </Text>
+      </YStack>
+
+      <YStack
+        w="100%"
+        maw={480}
+        miw={280}
+        bg="$gray3"
+        br="$8"
+        p="$6"
+        space="$5"
+        animation="quick"
+        enterStyle={{ opacity: 0, scale: 0.98, y: 6 }}
+      >
+        {gameState === "idle" && (
+          <YStack space="$4" ai="center">
+            <Text color="$gray12" fontSize="$5">
+              Press Start to begin
+            </Text>
+
+            <XStack space="$4">
+              <Button size="$6" onPress={startGame}>
+                Start
+              </Button>
+              {bestTime != null && (
+                <Stack
+                  bg="$gray5"
+                  br="$6"
+                  px="$3"
+                  jc="center"
+                  ai="center"
+                  animation="quick"
+                  enterStyle={{ opacity: 0, y: 4 }}
+                >
+                  <Text fontSize="$3" color="$gray12">
+                    Best: {bestTime}ms
+                  </Text>
+                </Stack>
+              )}
+            </XStack>
+          </YStack>
+        )}
+
+        {gameState === "result" && (
+          <YStack space="$5" ai="center">
+            <YStack ai="center" space="$2">
+              <Text fontSize="$7" fontWeight="700" color="$green10">
+                {feedback}
+              </Text>
+              <Text fontSize="$9" fontWeight="800">
+                {reactionTime}ms
+              </Text>
+            </YStack>
+
+            <XStack space="$3">
+              <Button size="$5" onPress={startGame}>
+                Play again
+              </Button>
+              <Button size="$5" variant="outlined" onPress={reset}>
+                Reset
+              </Button>
+            </XStack>
+
+            {bestTime != null && (
+              <Text color="$gray11" fontSize="$4">
+                Best so far: {bestTime}ms
+              </Text>
+            )}
+          </YStack>
+        )}
+
+        {gameState === "tooEarly" && (
+          <YStack space="$5" ai="center">
+            <YStack ai="center" space="$2">
+              <Text fontSize="$7" fontWeight="700" color="$red10">
+                Too early
+              </Text>
+              <Text fontSize="$4" color="$gray12">
+                Wait for the screen to turn red
+              </Text>
+            </YStack>
+
+            <XStack space="$3">
+              <Button size="$5" onPress={startGame}>
+                Try again
+              </Button>
+              <Button size="$5" variant="outlined" onPress={reset}>
+                Back
+              </Button>
+            </XStack>
+          </YStack>
+        )}
+      </YStack>
+
+      <Text color="$gray10" fontSize="$3">
+        Tips: Stay focused. Don’t anticipate. React.
       </Text>
-
-      {gameState === "idle" && (
-        <>
-          <Text fontSize="$5" textAlign="center" color="$gray11">
-            Press start, wait for red, then tap as fast as you can!
-          </Text>
-          <Button onPress={startGame} size="$6" fontSize="$6">
-            Start Game
-          </Button>
-        </>
-      )}
-
-      {gameState === "result" && (
-        <>
-          <Text fontSize="$7" color="$green10" fontWeight="bold">
-            {getReactionMessage()}
-          </Text>
-          <Text fontSize="$6">
-            Reaction time: {reactionTime}ms
-          </Text>
-          <Button onPress={resetGame} size="$5">
-            Play Again
-          </Button>
-        </>
-      )}
-
-      {gameState === "tooEarly" && (
-        <>
-          <Text fontSize="$7" color="$red10" fontWeight="bold">
-            Too early! 😅
-          </Text>
-          <Text fontSize="$5" textAlign="center" color="$gray11">
-            You pressed before the screen turned red
-          </Text>
-          <Button onPress={resetGame} size="$5">
-            Try Again
-          </Button>
-        </>
-      )}
     </YStack>
   );
 }

@@ -1,8 +1,8 @@
 import { createAnimations } from '@tamagui/animations-react-native'
-import { createInterFont } from '@tamagui/font-inter'
+
 import { shorthands } from '@tamagui/shorthands'
 import { themes, tokens } from '@tamagui/themes'
-import { createTamagui } from 'tamagui'
+import { createFont, createTamagui } from 'tamagui'
 
 const animations = createAnimations({
   bouncy: {
@@ -24,18 +24,51 @@ const animations = createAnimations({
   },
 })
 
-const headingFont = createInterFont()
-const bodyFont = createInterFont()
+const spaceMonoFont = createFont({
+  family: 'SpaceMono',
+  size: {
+    1: 12,
+    2: 13,
+    3: 15,
+    4: 17,
+    5: 19,
+    6: 21,
+    7: 24,
+    8: 28,
+    9: 34,
+  },
+  lineHeight: {
+    1: 16,
+    2: 18,
+    3: 20,
+    4: 22,
+    5: 24,
+    6: 26,
+    7: 28,
+    8: 32,
+    9: 38,
+  },
+  weight: {
+    4: '400',
+    7: '700',
+  },
+  face: {
+    400: { normal: 'SpaceMono' },
+    700: { normal: 'SpaceMono-Bold' },
+  },
+})
+
 
 export const config = createTamagui({
   animations,
   defaultTheme: 'light',
+  defaultFont: 'body',
   shouldAddPrefersColorThemes: false,
   themeClassNameOnRoot: false,
   shorthands,
   fonts: {
-    heading: headingFont,
-    body: bodyFont,
+    heading: spaceMonoFont,
+    body: spaceMonoFont,
   },
   tokens,
   themes,

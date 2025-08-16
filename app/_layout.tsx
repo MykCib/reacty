@@ -9,6 +9,7 @@ import { config } from "@/tamagui.config";
 export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    "SpaceMono-Bold": require("../assets/fonts/SpaceMono-Regular.ttf")
   });
 
   if (!loaded) {
