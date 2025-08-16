@@ -56,11 +56,10 @@ export default function ReactionGame() {
     };
   }, []);
 
-  const bgColor = (() => {
-    if (gameState === "waiting") return "$gray7";
+  const bgColor = () => {
     if (gameState === "red") return "$red10";
-    return "$background";
-  })();
+    return undefined;
+  };
 
   const feedback = (() => {
     if (reactionTime < 200) return "Lightning fast ⚡";
@@ -77,7 +76,7 @@ export default function ReactionGame() {
           f={1}
           jc="center"
           ai="center"
-          bg={bgColor}
+          bg={bgColor()}
           animation="quick"
           enterStyle={{ opacity: 0 }}
         >
@@ -114,7 +113,7 @@ export default function ReactionGame() {
   }
 
   return (
-    <YStack f={1} bg="$background" p="$6" space="$6" jc="center" ai="center">
+    <YStack f={1} p="$6" space="$6" jc="center" ai="center">
       <YStack ai="center" space="$2">
         <Text fontSize="$8" fontWeight="800" letterSpacing={0.5}>
           Reaction Game
@@ -128,7 +127,7 @@ export default function ReactionGame() {
         w="100%"
         maw={480}
         miw={280}
-        bg="$gray3"
+        bg="$background"
         br="$8"
         p="$6"
         space="$5"

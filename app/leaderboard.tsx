@@ -12,7 +12,7 @@ export default function Leaderboard() {
 
   return (
     <ScrollView>
-      <YStack f={1} p="$6" space="$6" bg="$background">
+      <YStack f={1} p="$6" space="$6" >
         <YStack ai="center" space="$2" mt="$6">
           <Text fontSize="$8" fontWeight="800" letterSpacing={0.5}>
             Leaderboard
@@ -27,7 +27,7 @@ export default function Leaderboard() {
           maw={520}
           miw={280}
           alignSelf="center"
-          bg="$gray3"
+          bg="$background"
           br="$8"
           p="$4"
           space="$4"
@@ -60,7 +60,7 @@ export default function Leaderboard() {
           ) : null}
 
           {stats.totalGames > 0 && (
-            <XStack jc="space-between" ai="center" p="$2" bg="$gray4" br="$6">
+            <XStack jc="space-between" ai="center" p="$2" bg="$gray4" br="$6" mt="$4">
               <Text fontSize="$3" color="$gray12">
                 Total games: {stats.totalGames}
               </Text>
