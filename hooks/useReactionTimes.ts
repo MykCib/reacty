@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import type { ReactionTimeEntry, ReactionTimeStats } from "@/types";
+import type { ReactionTimeStats } from "@/types";
 import {
   getAllReactionTimes,
   saveReactionTime,
@@ -8,6 +8,7 @@ import {
   getBestTime,
   getAverageTime,
   getTop10Times,
+  getLast20Attempts,
 } from "@/lib/storage";
 
 export function useReactionTimes() {
@@ -16,6 +17,7 @@ export function useReactionTimes() {
     averageTime: null,
     totalGames: 0,
     top10: [],
+    last20Attempts: [],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -24,10 +26,11 @@ export function useReactionTimes() {
     setLoading(true);
     setError("");
     try {
-      const [bestTime, averageTime, top10] = await Promise.all([
+      const [bestTime, averageTime, top10, last20Attempts] = await Promise.all([
         getBestTime(),
         getAverageTime(),
         getTop10Times(),
+        getLast20Attempts(),
       ]);
       
       const allEntries = await getAllReactionTimes();
@@ -37,8 +40,9 @@ export function useReactionTimes() {
         averageTime,
         totalGames: allEntries.length,
         top10,
+        last20Attempts,
       });
-    } catch (e) {
+    } catch {
       setError("Failed to load reaction times");
     } finally {
       setLoading(false);
@@ -63,6 +67,7 @@ export function useReactionTimes() {
         averageTime: null,
         totalGames: 0,
         top10: [],
+        last20Attempts: [],
       });
       setError("");
     } catch (e) {

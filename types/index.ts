@@ -11,4 +11,5 @@ export type ReactionTimeStats = {
   averageTime: number | null;
   totalGames: number;
   top10: ReactionTimeEntry[];
+  last20Attempts: number[];
 };

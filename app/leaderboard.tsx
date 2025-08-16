@@ -1,8 +1,12 @@
 import { Button, ScrollView, Separator, Stack, Text, XStack, YStack } from "tamagui";
+import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme, VictoryTooltip, VictoryVoronoiContainer } from "victory-native";
+import { Dimensions } from "react-native";
 import { useReactionTimes } from "@/hooks/useReactionTimes";
 
 export default function Leaderboard() {
   const { stats, loading, error, clearAll } = useReactionTimes();
+  const { width: windowWidth } = Dimensions.get("window");
+  const chartWidth = Math.min(520, windowWidth - 48);
 
   const handleClearAll = async (): Promise<void> => {
     try {
@@ -70,6 +74,39 @@ export default function Leaderboard() {
                 </Text>
               )}
             </XStack>
+          )}
+
+          {stats.last20Attempts.length > 0 && (
+            <YStack space="$3">
+              <Text fontSize="$5" fontWeight="700">
+                Last 20 attempts
+              </Text>
+              <Stack h={220} bg="$gray2" br="$6" p="$2" ai="center" jc="center">
+                <VictoryChart
+                  width={chartWidth}
+                  height={200}
+                  theme={VictoryTheme.material}
+                  domainPadding={{ x: 10, y: 10 }}
+                  containerComponent={
+                    <VictoryVoronoiContainer
+                      labels={({ datum }) => `${datum.y}ms`}
+                      labelComponent={<VictoryTooltip />}
+                    />
+                  }
+                >
+                  <VictoryAxis tickFormat={(t) => `${t}`} />
+                  <VictoryAxis dependentAxis tickFormat={(t) => `${t}ms`} />
+                  <VictoryLine
+                    interpolation="monotoneX"
+                    style={{ data: { stroke: "#ef4444", strokeWidth: 2 } }}
+                    data={stats.last20Attempts
+                      .slice()
+                      .reverse()
+                      .map((value, idx) => ({ x: idx + 1, y: value }))}
+                  />
+                </VictoryChart>
+              </Stack>
+            </YStack>
           )}
 
           {stats.top10.length === 0 && !loading ? (
