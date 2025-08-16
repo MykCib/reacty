@@ -43,9 +43,6 @@ export default function Leaderboard() {
               <Text fontSize="$5" fontWeight="700">
                 Results
               </Text>
-              <Text fontSize="$3" color="$gray11">
-                {loading ? "(loading...)" : `(${stats.top10.length})`}
-              </Text>
             </XStack>
 
             <Button
