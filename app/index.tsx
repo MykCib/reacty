@@ -3,6 +3,7 @@ import { Pressable } from "react-native";
 import { Button, Stack, Text, XStack, YStack } from "tamagui";
 import type { GameState } from "@/types";
 import { useReactionTimes } from "@/hooks/useReactionTimes";
+import * as Haptics from "expo-haptics";
 
 export default function ReactionGame() {
   const [gameState, setGameState] = useState<GameState>("idle");
@@ -37,6 +38,7 @@ export default function ReactionGame() {
     if (gameState === "red") {
       const rt = Date.now() - startTimeRef.current;
       setReactionTime(rt);
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setGameState("result");
       try {
         await saveTime(rt);
