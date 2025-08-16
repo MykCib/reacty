@@ -1,48 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
 import { Button, Stack, Text, XStack, YStack } from "tamagui";
-
-type GameState = "idle" | "waiting" | "red" | "result" | "tooEarly";
+import type { GameState } from "@/types";
+import { useReactionTimes } from "@/hooks/useReactionTimes";
 
 export default function ReactionGame() {
   const [gameState, setGameState] = useState<GameState>("idle");
   const [reactionTime, setReactionTime] = useState<number>(0);
-  const [bestTime, setBestTime] = useState<number | null>(null);
 
   const startTimeRef = useRef<number>(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadBestTime = useCallback(async () => {
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      const reactionKeys = keys.filter((k) => k.startsWith("reaction:"));
-      if (reactionKeys.length === 0) return;
-
-      const entries = await AsyncStorage.multiGet(reactionKeys);
-      let best = Infinity;
-
-      for (const [, value] of entries) {
-        if (value) {
-          const time = Number(value);
-          if (Number.isFinite(time) && time > 0 && time < best) {
-            best = time;
-          }
-        }
-      }
-
-      if (best !== Infinity) {
-        setBestTime(best);
-      }
-    } catch {}
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadBestTime();
-    }, [loadBestTime])
-  );
+  const { stats, saveTime } = useReactionTimes();
 
   const startGame = (): void => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -70,9 +39,7 @@ export default function ReactionGame() {
       setReactionTime(rt);
       setGameState("result");
       try {
-        const key = `reaction:${new Date().toISOString()}`;
-        await AsyncStorage.setItem(key, String(rt));
-        setBestTime((prev) => (prev == null || rt < prev ? rt : prev));
+        await saveTime(rt);
       } catch {}
     }
   };
@@ -178,7 +145,7 @@ export default function ReactionGame() {
               <Button size="$6" onPress={startGame}>
                 Start
               </Button>
-              {bestTime != null && (
+              {stats.bestTime != null && (
                 <Stack
                   bg="$gray5"
                   br="$6"
@@ -189,11 +156,24 @@ export default function ReactionGame() {
                   enterStyle={{ opacity: 0, y: 4 }}
                 >
                   <Text fontSize="$3" color="$gray12">
-                    Best: {bestTime}ms
+                    Best: {stats.bestTime}ms
                   </Text>
                 </Stack>
               )}
             </XStack>
+
+            {stats.totalGames > 0 && (
+              <YStack ai="center" space="$1">
+                <Text fontSize="$3" color="$gray11">
+                  Games played: {stats.totalGames}
+                </Text>
+                {stats.averageTime && (
+                  <Text fontSize="$3" color="$gray11">
+                    Average: {stats.averageTime}ms
+                  </Text>
+                )}
+              </YStack>
+            )}
           </YStack>
         )}
 
@@ -217,9 +197,9 @@ export default function ReactionGame() {
               </Button>
             </XStack>
 
-            {bestTime != null && (
+            {stats.bestTime != null && (
               <Text color="$gray11" fontSize="$4">
-                Best so far: {bestTime}ms
+                Best so far: {stats.bestTime}ms
               </Text>
             )}
           </YStack>
@@ -249,7 +229,7 @@ export default function ReactionGame() {
       </YStack>
 
       <Text color="$gray10" fontSize="$3">
-        Tips: Stay focused. Don’t anticipate. React.
+        Tips: Stay focused. Don&apos;t anticipate. React.
       </Text>
     </YStack>
   );

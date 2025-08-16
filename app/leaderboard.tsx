@@ -1,99 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
-import {
-  Button,
-  ScrollView,
-  Separator,
-  Stack,
-  Text,
-  XStack,
-  YStack,
-} from "tamagui";
-
-type LeaderboardEntry = {
-  key: string;
-  timeMs: number;
-  date: Date;
-};
-
-const STORAGE_PREFIX = "reaction:";
-
-function isValidNumber(value: string | null): value is string {
-  if (value == null) return false;
-  const n = Number(value);
-  return Number.isFinite(n) && n >= 0;
-}
-
-function parseKeyDate(key: string): Date | null {
-  if (!key.startsWith(STORAGE_PREFIX)) return null;
-  const iso = key.slice(STORAGE_PREFIX.length);
-  const date = new Date(iso);
-  if (isNaN(date.getTime())) return null;
-  return date;
-}
-
-async function fetchEntries(): Promise<LeaderboardEntry[]> {
-  const keys = await AsyncStorage.getAllKeys();
-  const reactionKeys = keys.filter((k) => k.startsWith(STORAGE_PREFIX));
-  if (reactionKeys.length === 0) return [];
-
-  const entries = await AsyncStorage.multiGet(reactionKeys);
-  const parsed: LeaderboardEntry[] = [];
-
-  for (const [key, value] of entries) {
-    const date = parseKeyDate(key);
-    if (!date) continue;
-    if (!isValidNumber(value)) continue;
-    parsed.push({ key, date, timeMs: Number(value) });
-  }
-
-  parsed.sort((a, b) => a.timeMs - b.timeMs);
-  return parsed.slice(0, 10);
-}
+import { Button, ScrollView, Separator, Stack, Text, XStack, YStack } from "tamagui";
+import { useReactionTimes } from "@/hooks/useReactionTimes";
 
 export default function Leaderboard() {
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const { stats, loading, error, clearAll } = useReactionTimes();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setErrorMessage("");
+  const handleClearAll = async (): Promise<void> => {
     try {
-      const top = await fetchEntries();
-      setEntries(top);
-    } catch (e) {
-      setErrorMessage("Failed to load leaderboard");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load]),
-  );
-
-  useEffect(() => {
-    if (!loading && entries.length > 10) {
-      setEntries(entries.slice(0, 10));
-    }
-  }, [loading, entries]);
-
-  const clearAll = async (): Promise<void> => {
-    setErrorMessage("");
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      const reactionKeys = keys.filter((k) => k.startsWith(STORAGE_PREFIX));
-      if (reactionKeys.length > 0) {
-        await AsyncStorage.multiRemove(reactionKeys);
-      }
-      setEntries([]);
-    } catch {
-      setErrorMessage("Failed to clear leaderboard");
-    }
+      await clearAll();
+    } catch {}
   };
 
   return (
@@ -126,26 +40,39 @@ export default function Leaderboard() {
                 Results
               </Text>
               <Text fontSize="$3" color="$gray11">
-                {`(${entries.length})`}
+                {loading ? "(loading...)" : `(${stats.top10.length})`}
               </Text>
             </XStack>
 
             <Button
               size="$3"
-              onPress={clearAll}
-              disabled={entries.length === 0}
+              onPress={handleClearAll}
+              disabled={stats.top10.length === 0}
             >
               Clear
             </Button>
           </XStack>
 
-          {errorMessage ? (
+          {error ? (
             <Stack bg="$red4" br="$6" p="$3">
-              <Text color="$red11">{errorMessage}</Text>
+              <Text color="$red11">{error}</Text>
             </Stack>
           ) : null}
 
-          {entries.length === 0 && !loading ? (
+          {stats.totalGames > 0 && (
+            <XStack jc="space-between" ai="center" p="$2" bg="$gray4" br="$6">
+              <Text fontSize="$3" color="$gray12">
+                Total games: {stats.totalGames}
+              </Text>
+              {stats.averageTime && (
+                <Text fontSize="$3" color="$gray12">
+                  Average: {stats.averageTime}ms
+                </Text>
+              )}
+            </XStack>
+          )}
+
+          {stats.top10.length === 0 && !loading ? (
             <YStack ai="center" py="$6" space="$2">
               <Text fontSize="$5" color="$gray12">
                 No results yet
@@ -156,8 +83,8 @@ export default function Leaderboard() {
             </YStack>
           ) : (
             <YStack>
-              {entries.map((e, idx) => (
-                <YStack key={e.key}>
+              {stats.top10.map((entry, idx) => (
+                <YStack key={entry.key}>
                   <YStack py="$3" px="$2" ai="flex-start" jc="space-between">
                     <XStack ai="center" space="$3">
                       <Stack
@@ -173,14 +100,14 @@ export default function Leaderboard() {
                         </Text>
                       </Stack>
                       <Text fontSize="$6" fontWeight="700">
-                        {e.timeMs}ms
+                        {entry.timeMs}ms
                       </Text>
                     </XStack>
                     <Text color="$gray11" fontSize="$3">
-                      {e.date.toLocaleString()}
+                      {entry.date.toLocaleString()}
                     </Text>
                   </YStack>
-                  {idx < entries.length - 1 ? <Separator /> : null}
+                  {idx < stats.top10.length - 1 ? <Separator /> : null}
                 </YStack>
               ))}
             </YStack>
