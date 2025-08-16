@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Button, Stack, Text, XStack, YStack } from "tamagui";
 
 type GameState = "idle" | "waiting" | "red" | "result" | "tooEarly";
@@ -26,7 +27,7 @@ export default function ReactionGame() {
     }, delayMs);
   };
 
-  const handleGamePress = (): void => {
+  const handleGamePress = async (): Promise<void> => {
     if (gameState === "waiting") {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setGameState("tooEarly");
@@ -38,6 +39,10 @@ export default function ReactionGame() {
       setReactionTime(rt);
       setBestTime((prev) => (prev == null || rt < prev ? rt : prev));
       setGameState("result");
+      try {
+        const key = `reaction:${new Date().toISOString()}`;
+        await AsyncStorage.setItem(key, String(rt));
+      } catch {}
     }
   };
 

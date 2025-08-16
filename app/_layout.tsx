@@ -1,5 +1,5 @@
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
@@ -18,9 +18,10 @@ export default function RootLayout() {
 
   return (
     <TamaguiProvider config={config} defaultTheme="light">
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-      </Stack>
+      <Tabs screenOptions={{ headerShown: false }}>
+        <Tabs.Screen name="index" options={{ title: "Game" }} />
+        <Tabs.Screen name="leaderboard" options={{ title: "Leaderboard" }} />
+      </Tabs>
       <StatusBar style="auto" />
     </TamaguiProvider>
   );

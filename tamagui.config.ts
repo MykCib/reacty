@@ -1,31 +1,31 @@
-import { createAnimations } from '@tamagui/animations-react-native'
+import { createAnimations } from "@tamagui/animations-react-native";
 
-import { shorthands } from '@tamagui/shorthands'
-import { themes, tokens } from '@tamagui/themes'
-import { createFont, createTamagui } from 'tamagui'
+import { shorthands } from "@tamagui/shorthands";
+import { themes, tokens } from "@tamagui/themes";
+import { createFont, createTamagui } from "tamagui";
 
 const animations = createAnimations({
   bouncy: {
-    type: 'spring',
+    type: "spring",
     damping: 10,
     mass: 0.9,
     stiffness: 100,
   },
   lazy: {
-    type: 'spring',
+    type: "spring",
     damping: 20,
     stiffness: 60,
   },
   quick: {
-    type: 'spring',
+    type: "spring",
     damping: 20,
     mass: 1.2,
     stiffness: 250,
   },
-})
+});
 
 const spaceMonoFont = createFont({
-  family: 'SpaceMono',
+  family: "SpaceMono",
   size: {
     1: 12,
     2: 13,
@@ -49,20 +49,19 @@ const spaceMonoFont = createFont({
     9: 38,
   },
   weight: {
-    4: '400',
-    7: '700',
+    4: "400",
+    7: "700",
   },
   face: {
-    400: { normal: 'SpaceMono' },
-    700: { normal: 'SpaceMono-Bold' },
+    400: { normal: "SpaceMono" },
+    700: { normal: "SpaceMono-Bold" },
   },
-})
-
+});
 
 export const config = createTamagui({
   animations,
-  defaultTheme: 'light',
-  defaultFont: 'body',
+  defaultTheme: "light",
+  defaultFont: "body",
   shouldAddPrefersColorThemes: false,
   themeClassNameOnRoot: false,
   shorthands,
@@ -85,13 +84,13 @@ export const config = createTamagui({
     gtLg: { minWidth: 1280 + 1 },
     short: { maxHeight: 820 },
     tall: { minHeight: 820 },
-    hoverNone: { hover: 'none' },
-    pointerCoarse: { pointer: 'coarse' },
+    hoverNone: { hover: "none" },
+    pointerCoarse: { pointer: "coarse" },
   },
-})
+});
 
-type AppConfig = typeof config
+type AppConfig = typeof config;
 
-declare module 'tamagui' {
+declare module "tamagui" {
   interface TamaguiCustomConfig extends AppConfig {}
 }
