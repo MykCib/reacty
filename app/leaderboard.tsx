@@ -76,10 +76,10 @@ export default function Leaderboard() {
             </XStack>
           )}
 
-          {stats.last20Attempts.length > 0 && (
+          {stats.last20Attempts.length > 1 && (
             <YStack space="$3">
               <Text fontSize="$5" fontWeight="700">
-                Last 20 attempts
+                {`Last ${stats.last20Attempts.length} attempts`}
               </Text>
               <Stack h={220} bg="$gray2" br="$6" p="$2" ai="center" jc="center">
                 <VictoryChart

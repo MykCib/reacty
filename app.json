@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "playinh",
-    "slug": "playinh",
+    "name": "reacty",
+    "slug": "reacty",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "playinh",
+    "scheme": "reacty",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
